@@ -1,6 +1,25 @@
-import styled from 'styled-components';
+import { useState, useEffect } from 'react';
+import styled, { keyframes } from 'styled-components';
 
-const NotificationContainer = styled.div`
+const slideUp = keyframes`
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+`;
+
+const slideDown = keyframes`
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+`;
+
+const NotificationContainer = styled.div<{ isVisible: boolean }>`
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -9,15 +28,42 @@ const NotificationContainer = styled.div`
   border-radius: 4px;
   padding: 10px 20px;
   font-size: 14px;
-  font-weight: 800px;
+  animation: ${({ isVisible }) => (isVisible ? slideUp : slideDown)} 0.3s
+    forwards;
 `;
 
 interface NotificationProps {
   message: string;
+  visible?: boolean;
+  duration?: number;
 }
 
-const Notification = ({ message }: NotificationProps) => {
-  return <NotificationContainer>{message}</NotificationContainer>;
+const Notification = ({
+  message,
+  visible = true,
+  duration = 3000,
+}: NotificationProps) => {
+  const [isVisible, setIsVisible] = useState(visible);
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (visible) {
+      timeoutId = setTimeout(() => {
+        setIsVisible(false);
+      }, duration);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [visible, duration]);
+
+  return (
+    <NotificationContainer isVisible={isVisible}>
+      {message}
+    </NotificationContainer>
+  );
 };
 
 export default Notification;

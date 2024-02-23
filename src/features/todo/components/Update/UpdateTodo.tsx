@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import TodoComponent from '@/components/Todo/TodoComponent/TodoComponent';
+import TodoForm, { TodoFormProps } from '@/components/Forms/TodoForm/TodoForm';
 import { Todo, fetchTodoById, updateTodoEndpoint } from '@/utils/api';
+import styled from 'styled-components';
+
+const Loader = styled.div`
+  font-size: 1rem;
+  font-weight: 800;
+  color: #2f80ed;
+`;
 
 const UpdateTodo = () => {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string | undefined }>();
-  const [initialValue, setInitialValue] = useState<string>('');
+
+  const [todoValue, setTodoValue] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [showLoader, setShowLoader] = useState<boolean>(false);
+  const [notificationVisible, setNotificationVisible] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: todo, isLoading } = useQuery<Todo, Error>(
@@ -25,12 +36,18 @@ const UpdateTodo = () => {
   >((data) => updateTodoEndpoint(data._id, data.text), {
     onSuccess: () => {
       queryClient.invalidateQueries('todo');
+      setNotificationVisible(true);
+      setShowLoader(true);
+      setTimeout(() => {
+        setShowLoader(false);
+        navigate('/');
+      }, 1500);
     },
   });
 
   useEffect(() => {
     if (!isLoading && todo) {
-      setInitialValue(todo.text);
+      setTodoValue(todo.text);
       setLoading(false);
     }
   }, [isLoading, todo]);
@@ -49,16 +66,25 @@ const UpdateTodo = () => {
   };
 
   if (loading || isLoading) {
-    return <div>Loading...</div>;
+    return <Loader>Loading...</Loader>;
   }
 
+  const todoFormProps: TodoFormProps = {
+    title: 'Update to do',
+    todoValue: todoValue,
+    onTodoValueChange: setTodoValue,
+    onAction: handleUpdateTodo,
+    disabled: showLoader,
+    notificationVisible: notificationVisible,
+    notificationMessage: 'To do updated',
+    notificationDuration: 1500,
+  };
+
   return (
-    <TodoComponent
-      title="Update to do"
-      onAction={handleUpdateTodo}
-      actionNotificationMessage="To do updated"
-      initialValue={initialValue || ''}
-    />
+    <>
+      <TodoForm {...todoFormProps} />
+      {showLoader && <Loader>Updating to do...</Loader>}
+    </>
   );
 };
 

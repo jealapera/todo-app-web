@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StoryObj, Meta } from '@storybook/react';
 import TextField, { TextFieldProps } from './TextField';
+import styled from 'styled-components';
 
 const meta: Meta = {
   title: 'Components/TextField',
@@ -13,9 +14,13 @@ const meta: Meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof TextField>;
+type StoryType = StoryObj<typeof TextField>;
 
-export const Default: Story = (args) => {
+const StoryContainer = styled.div`
+  max-width: 320px;
+`;
+
+export const Default = (args: StoryType) => {
   const [value, setValue] = useState<string>('');
 
   const handleChange: TextFieldProps['onChange'] = (newValue) => {
@@ -27,12 +32,15 @@ export const Default: Story = (args) => {
   };
 
   return (
-    <TextField
-      {...args}
-      value={value}
-      onChange={handleChange}
-      onClear={handleClear}
-    />
+    <StoryContainer>
+      {' '}
+      <TextField
+        {...args}
+        value={value}
+        onChange={handleChange}
+        onClear={handleClear}
+      />
+    </StoryContainer>
   );
 };
 
